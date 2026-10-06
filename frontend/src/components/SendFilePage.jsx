@@ -3,7 +3,7 @@ import { createShare, uploadFile } from '../api';
 import { encryptFile, generateShareCode } from '../crypto';
 import { 
   ArrowLeft, CloudUpload, X, Plus, ChevronDown, Eye, Download, 
-  Lock, CheckCircle2, QrCode, FileText, Check, Circle, Mail, User, Info, ArrowRight, ShieldCheck
+  Lock, CheckCircle2, QrCode, FileText, Check, Circle, Mail, User, Info, ArrowRight, ShieldCheck, Copy
 } from 'lucide-react';
 
 const SendFilePage = () => {
@@ -20,6 +20,7 @@ const SendFilePage = () => {
   const [isSharing, setIsSharing] = useState(false);
   const [error, setError] = useState('');
   const [createdShare, setCreatedShare] = useState(null);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   const selectFile = (selectedFile) => {
     setFile({
@@ -87,6 +88,16 @@ const SendFilePage = () => {
 
   const onBack = () => {
     window.location.href = '/';
+  };
+
+  const handleCopyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(createdShare.code);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 1500);
+    } catch {
+      window.prompt('Copy this code:', createdShare.code);
+    }
   };
 
   return (
@@ -474,6 +485,10 @@ const SendFilePage = () => {
                 <div className="mb-5 rounded-2xl border border-[#C2D742] bg-[#FAFCF0] p-5 text-center">
                   <p className="text-xs font-bold uppercase tracking-wider text-gray-600">Give this code to the recipient</p>
                   <p className="my-2 text-4xl font-bold tracking-[0.35em] text-gray-900">{createdShare.code}</p>
+                  <button onClick={handleCopyCode} className="inline-flex items-center gap-2 rounded-full bg-[#1A1D27] px-4 py-2 text-xs font-bold text-white hover:bg-black">
+                    <Copy className="h-3.5 w-3.5" />
+                    {copiedCode ? 'Copied' : 'Copy code'}
+                  </button>
                 </div>
               )}
               <button 
