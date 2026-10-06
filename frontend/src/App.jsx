@@ -3,6 +3,7 @@ import UploadForm from './components/UploadForm'
 import ShareList from './components/ShareList'
 import DownloadPage from './components/DownloadPage'
 import SendFilePage from './components/SendFilePage'
+import ReceiveFilePage from './components/ReceiveFilePage'
 import Home from './Home'
 import SignIn from './SignIn'
 import SignUp from './SignUp'
@@ -15,6 +16,14 @@ function App() {
 
   if (window.location.pathname === '/') {
     return <Home />
+  }
+
+  if (window.location.pathname === '/send') {
+    return <SendFilePage />
+  }
+
+  if (window.location.pathname === '/receive') {
+    return <ReceiveFilePage />
   }
 
   return (
