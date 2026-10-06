@@ -474,7 +474,6 @@ const SendFilePage = () => {
                 <div className="mb-5 rounded-2xl border border-[#C2D742] bg-[#FAFCF0] p-5 text-center">
                   <p className="text-xs font-bold uppercase tracking-wider text-gray-600">Give this code to the recipient</p>
                   <p className="my-2 text-4xl font-bold tracking-[0.35em] text-gray-900">{createdShare.code}</p>
-                  <p className="break-all text-xs text-gray-500">{createdShare.link}</p>
                 </div>
               )}
               <button 
