@@ -7,6 +7,7 @@ import ReceiveFilePage from './components/ReceiveFilePage'
 import Home from './Home'
 import SignIn from './SignIn'
 import SignUp from './SignUp'
+import History from './History'
 function App() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [codeInput, setCodeInput] = useState('')
@@ -27,6 +28,18 @@ function App() {
     return <ReceiveFilePage />
   }
 
+  if (window.location.pathname === '/history') {
+    return <History />
+  }
+
+  if (path === '/signin') {
+    return <SignIn />
+  }
+
+  if (path === '/signup') {
+    return <SignUp />
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -34,21 +47,6 @@ function App() {
 
         {match ? (
           <DownloadPage code={match[1]} />
-        ) : window.location.pathname === '/receive' ? (
-          <div className="bg-white rounded-xl shadow p-6 flex gap-2">
-            <input
-              placeholder="Have a share code? Enter it here"
-              value={codeInput}
-              onChange={(e) => setCodeInput(e.target.value)}
-              className="border rounded-lg px-3 py-2 flex-1"
-            />
-            <button
-              onClick={() => codeInput && (window.location.href = `/s/${codeInput.trim()}`)}
-              className="bg-gray-800 text-white rounded-lg px-4"
-            >
-              Open
-            </button>
-          </div>
         ) : (
           <div>Page not found</div>
         )}
