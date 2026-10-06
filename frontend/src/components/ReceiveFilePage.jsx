@@ -7,6 +7,7 @@ const ReceiveFilePage = () => {
   const [accessCode, setAccessCode] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [fileReceived, setFileReceived] = useState(false);
 
   const onBack = () => {
     window.location.href = '/';
@@ -14,8 +15,8 @@ const ReceiveFilePage = () => {
 
   const handleAccess = () => {
     // Functional mock for accessing the file
-    if (accessCode && password) {
-      alert("Accessing secure file...");
+    if (accessCode) {
+      setFileReceived(true);
     }
   };
 
@@ -61,13 +62,20 @@ const ReceiveFilePage = () => {
 
               <div className="border border-gray-100 bg-[#FAFAFA] rounded-2xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-[#FF3B30] rounded-xl flex items-center justify-center shadow-sm">
-                    <FileText className="w-6 h-6 text-white" />
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${fileReceived ? 'bg-[#FF3B30]' : 'bg-gray-200'}`}>
+                    <FileText className={`w-6 h-6 ${fileReceived ? 'text-white' : 'text-gray-400'}`} />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-gray-400 text-[15px] italic">No file selected</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">-- MB</p>
-                  </div>
+                  {fileReceived ? (
+                    <div>
+                      <h3 className="font-bold text-gray-900 text-[15px]">Project_Report.pdf</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">2.4 MB • PDF Document</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <h3 className="font-bold text-gray-400 text-[15px] italic">No file selected</h3>
+                      <p className="text-xs text-gray-400 mt-0.5">-- MB</p>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-[#E5F876] bg-opacity-70 text-black px-3 py-1.5 rounded-full text-xs font-semibold flex items-center shadow-sm">
                   <Lock className="w-3.5 h-3.5 mr-1.5" />
@@ -177,62 +185,69 @@ const ReceiveFilePage = () => {
               <p className="text-sm text-gray-500 mt-1">Details about this shared file.</p>
             </div>
 
-            <div className="space-y-6 mb-8">
-              
-              <div className="flex items-start gap-5">
-                <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
-                  <User className="w-4 h-4" />
+            {fileReceived ? (
+              <div className="space-y-6 mb-8">
+                
+                <div className="flex items-start gap-5">
+                  <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Shared by</span>
+                    <p className="font-bold text-gray-900 text-sm">Anush Sharma</p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Shared by</span>
-                  <p className="font-bold text-gray-900 text-sm">Anush Sharma</p>
-                </div>
-              </div>
 
-              <div className="flex items-start gap-5">
-                <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
-                  <Calendar className="w-4 h-4" />
+                <div className="flex items-start gap-5">
+                  <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
+                    <Calendar className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Shared on</span>
+                    <p className="font-bold text-gray-900 text-sm">Oct 6, 2026</p>
+                    <p className="text-xs text-gray-500 mt-0.5">12:37 PM</p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Shared on</span>
-                  <p className="font-bold text-gray-900 text-sm">Oct 6, 2026</p>
-                  <p className="text-xs text-gray-500 mt-0.5">12:37 PM</p>
-                </div>
-              </div>
 
-              <div className="flex items-start gap-5">
-                <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
-                  <Clock className="w-4 h-4" />
+                <div className="flex items-start gap-5">
+                  <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Expires in</span>
+                    <p className="font-bold text-gray-900 text-sm">24 hours</p>
+                    <p className="text-xs font-bold text-[#84c311] mt-0.5">23h 42m 18s</p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Expires in</span>
-                  <p className="font-bold text-gray-900 text-sm">24 hours</p>
-                  <p className="text-xs font-bold text-[#84c311] mt-0.5">23h 42m 18s</p>
-                </div>
-              </div>
 
-              <div className="flex items-start gap-5">
-                <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
-                  <Download className="w-4 h-4" />
+                <div className="flex items-start gap-5">
+                  <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
+                    <Download className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Download limit</span>
+                    <p className="font-bold text-gray-900 text-sm">3 downloads</p>
+                    <p className="text-xs text-gray-500 mt-0.5">0 / 3 used</p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Download limit</span>
-                  <p className="font-bold text-gray-900 text-sm">3 downloads</p>
-                  <p className="text-xs text-gray-500 mt-0.5">0 / 3 used</p>
-                </div>
-              </div>
 
-              <div className="flex items-start gap-5">
-                <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
-                  <Eye className="w-4 h-4" />
-                </div>
-                <div>
-                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Permission</span>
-                  <p className="font-bold text-gray-900 text-sm">View Only</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Open in secure viewer</p>
+                <div className="flex items-start gap-5">
+                  <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
+                    <Eye className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Permission</span>
+                    <p className="font-bold text-gray-900 text-sm">View Only</p>
+                    <p className="text-xs text-gray-500 mt-0.5">Open in secure viewer</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 px-4 text-center border-2 border-dashed border-gray-100 rounded-2xl bg-[#FAFAFA]">
+                <ShieldCheck className="w-10 h-10 text-gray-300 mb-3" />
+                <p className="text-sm font-medium text-gray-500">Enter a valid access code to view share details and download limits.</p>
+              </div>
+            )}
 
 
 
