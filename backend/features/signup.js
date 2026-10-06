@@ -45,7 +45,13 @@ router.post('/signup', async (req, res) => {
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
-    if (err.code === 11000) return res.status(409).json({ error: 'This email is already registered' });
+    if (err.code === 11000) {
+      const duplicateField = Object.keys(err.keyPattern || err.keyValue || {})[0];
+      if (duplicateField === 'email') {
+        return res.status(409).json({ error: 'This email is already registered' });
+      }
+      return res.status(409).json({ error: 'This account could not be created because of a duplicate field' });
+    }
     throw err;
   }
 });
