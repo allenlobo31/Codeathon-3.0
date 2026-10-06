@@ -59,7 +59,6 @@ const SendFilePage = () => {
 
   const handleShare = async () => {
     if (!file?.original) return setError('Please choose a file first');
-    if (!recipients.length) return setError('Add at least one recipient');
 
     setIsSharing(true);
     setError('');
@@ -68,9 +67,13 @@ const SendFilePage = () => {
       const expiresInMinutes = noExpiry
         ? 365 * 24 * 60
         : (Number(expiryHours) || 0) * 60 + (Number(expiryMinutes) || 0);
+      let finalMaxDownloads = null;
+      if (deliveryMode === 'download_once') finalMaxDownloads = 1;
+      else if (deliveryMode === 'download_allowed') finalMaxDownloads = downloadLimit;
+
       const share = await createShare(uploaded.id, expiresInMinutes, {
         allowedEmails: recipients.map((recipient) => recipient.email),
-        maxDownloads: downloadLimit,
+        ...(deliveryMode !== 'view' && { maxDownloads: finalMaxDownloads })
       });
       window.location.href = shareLink(share.code);
     } catch (requestError) {
@@ -193,7 +196,7 @@ const SendFilePage = () => {
             <section>
               <div className="mb-4">
                 <h2 className="text-lg font-bold">Recipients</h2>
-                <p className="text-sm text-gray-500">Only selected users will be able to access this file.</p>
+                <p className="text-sm text-gray-500">If no emails are added, anyone with the code can receive the file.</p>
               </div>
               
               <div className="flex gap-3 relative mb-4">
@@ -287,33 +290,6 @@ const SendFilePage = () => {
                   </div>
                 </div>
 
-                {/* Download Limit */}
-                <div>
-                  <h3 className="font-semibold text-sm text-gray-900 mb-1">Download limit</h3>
-                  <p className="text-xs text-gray-500 mb-3">Maximum number of downloads allowed.</p>
-                  
-                  <div>
-                    <div className="relative w-24">
-                      <input 
-                        type="number" 
-                        min="1"
-                        className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-8 py-2.5 text-sm font-medium text-gray-700 focus:outline-none focus:border-gray-400 appearance-none m-0"
-                        value={downloadLimit}
-                        onChange={(e) => setDownloadLimit(parseInt(e.target.value) || 1)}
-                        style={{ MozAppearance: 'textfield' }}
-                      />
-                      <div className="absolute right-2 top-0 bottom-0 flex flex-col justify-center">
-                        <button onClick={() => setDownloadLimit(d => d + 1)} className="text-gray-400 hover:text-gray-700 h-3 flex items-end">
-                          <ChevronDown className="w-3 h-3 rotate-180" />
-                        </button>
-                        <button onClick={() => setDownloadLimit(d => Math.max(1, d - 1))} className="text-gray-400 hover:text-gray-700 h-3 flex items-start">
-                          <ChevronDown className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">{downloadLimit} downloads allowed</p>
-                  </div>
-                </div>
               </div>
 
               {/* Delivery Mode */}
@@ -336,7 +312,7 @@ const SendFilePage = () => {
                       {deliveryMode === 'view' && <div className="w-2 h-2 rounded-full bg-gray-900"></div>}
                     </div>
                   </div>
-                  
+
                   <div 
                     onClick={() => setDeliveryMode('download_once')}
                     className={`cursor-pointer rounded-xl p-4 border transition-all flex items-start gap-3
@@ -366,23 +342,38 @@ const SendFilePage = () => {
                       {deliveryMode === 'download_allowed' && <div className="w-2 h-2 rounded-full bg-gray-900"></div>}
                     </div>
                   </div>
+                  
                 </div>
+
+                {deliveryMode === 'download_allowed' && (
+                  <div className="mt-4 p-4 border border-[#C2D742] bg-[#FAFCF0] rounded-xl flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-900">Set limit</h4>
+                      <p className="text-[11px] text-gray-500 mt-0.5">Maximum number of downloads</p>
+                    </div>
+                    <div className="relative w-24">
+                      <input 
+                        type="number" 
+                        min="1"
+                        className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-8 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:border-gray-400 appearance-none m-0"
+                        value={downloadLimit}
+                        onChange={(e) => setDownloadLimit(parseInt(e.target.value) || 1)}
+                        style={{ MozAppearance: 'textfield' }}
+                      />
+                      <div className="absolute right-2 top-0 bottom-0 flex flex-col justify-center">
+                        <button onClick={() => setDownloadLimit(d => d + 1)} className="text-gray-400 hover:text-gray-700 h-3 flex items-end">
+                          <ChevronDown className="w-3 h-3 rotate-180" />
+                        </button>
+                        <button onClick={() => setDownloadLimit(d => Math.max(1, d - 1))} className="text-gray-400 hover:text-gray-700 h-3 flex items-start">
+                          <ChevronDown className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
 
-            {/* ADVANCED SECURITY */}
-            <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-              <button 
-                onClick={() => setAdvancedSecurityOpen(!advancedSecurityOpen)}
-                className="w-full flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-center">
-                  <Lock className="w-4 h-4 text-gray-700 mr-3" />
-                  <h2 className="text-sm font-bold text-gray-900">Advanced Security</h2>
-                </div>
-                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${advancedSecurityOpen ? 'rotate-180' : ''}`} />
-              </button>
-            </section>
 
           </div>
         </div>

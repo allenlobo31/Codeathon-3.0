@@ -2,22 +2,48 @@ import React, { useState } from 'react';
 import { 
   ArrowLeft, Lock, FileText, User, Calendar, Clock, Download, Eye, ShieldCheck, Mail, ArrowRight, Key, Shield, HelpCircle, EyeOff, CheckCircle2
 } from 'lucide-react';
+import { getShareInfo, downloadUrl } from '../api';
 
 const ReceiveFilePage = () => {
   const [accessCode, setAccessCode] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [fileReceived, setFileReceived] = useState(false);
+  const [shareData, setShareData] = useState(null);
+  const [error, setError] = useState(null);
+  const [downloading, setDownloading] = useState(false);
 
   const onBack = () => {
     window.location.href = '/';
   };
 
-  const handleAccess = () => {
-    // Functional mock for accessing the file
-    if (accessCode) {
+  const handleAccess = async () => {
+    if (!accessCode) return setError('Please enter an access code');
+    setError(null);
+    try {
+      const data = await getShareInfo(accessCode);
+      setShareData(data);
       setFileReceived(true);
+    } catch (err) {
+      setError(err.message || 'Failed to retrieve file info');
     }
+  };
+
+  const handleDownload = () => {
+    if (!shareData || !shareData.accessAllowed) return;
+    setDownloading(true);
+    
+    // In a real app we might fetch the blob and trigger a download to handle auth.
+    // For now we use the downloadUrl direct link which works if public.
+    window.location.href = downloadUrl(accessCode);
+    
+    setTimeout(() => {
+      setDownloading(false);
+      // Optimistically update remaining downloads
+      if (shareData.remainingDownloads !== null && shareData.remainingDownloads > 0) {
+        setShareData(prev => ({...prev, remainingDownloads: prev.remainingDownloads - 1}));
+      }
+    }, 2000);
   };
 
   return (
@@ -65,10 +91,12 @@ const ReceiveFilePage = () => {
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${fileReceived ? 'bg-[#FF3B30]' : 'bg-gray-200'}`}>
                     <FileText className={`w-6 h-6 ${fileReceived ? 'text-white' : 'text-gray-400'}`} />
                   </div>
-                  {fileReceived ? (
+                  {fileReceived && shareData ? (
                     <div>
-                      <h3 className="font-bold text-gray-900 text-[15px]">Project_Report.pdf</h3>
-                      <p className="text-xs text-gray-500 mt-0.5">2.4 MB • PDF Document</p>
+                      <h3 className="font-bold text-gray-900 text-[15px]">{shareData.fileName || 'Unknown File'}</h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {shareData.size ? (shareData.size / (1024 * 1024)).toFixed(2) + ' MB' : '-- MB'} 
+                      </p>
                     </div>
                   ) : (
                     <div>
@@ -146,6 +174,7 @@ const ReceiveFilePage = () => {
                       <ArrowRight className="w-4 h-4" />
                     </div>
                   </button>
+                  {error && <p className="text-center text-sm text-red-600 mt-2 font-medium">{error}</p>}
                 </div>
 
                 {/* Divider */}
@@ -185,16 +214,18 @@ const ReceiveFilePage = () => {
               <p className="text-sm text-gray-500 mt-1">Details about this shared file.</p>
             </div>
 
-            {fileReceived ? (
+            {fileReceived && shareData ? (
               <div className="space-y-6 mb-8">
                 
                 <div className="flex items-start gap-5">
                   <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
-                    <User className="w-4 h-4" />
+                    <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Shared by</span>
-                    <p className="font-bold text-gray-900 text-sm">Anush Sharma</p>
+                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Status</span>
+                    <p className={`font-bold text-sm ${shareData.status === 'active' ? 'text-green-600' : 'text-red-600'}`}>
+                      {shareData.status === 'active' ? 'Active' : 'Expired / Revoked'}
+                    </p>
                   </div>
                 </div>
 
@@ -203,20 +234,13 @@ const ReceiveFilePage = () => {
                     <Calendar className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Shared on</span>
-                    <p className="font-bold text-gray-900 text-sm">Oct 6, 2026</p>
-                    <p className="text-xs text-gray-500 mt-0.5">12:37 PM</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-5">
-                  <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Expires in</span>
-                    <p className="font-bold text-gray-900 text-sm">24 hours</p>
-                    <p className="text-xs font-bold text-[#84c311] mt-0.5">23h 42m 18s</p>
+                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Expires on</span>
+                    <p className="font-bold text-gray-900 text-sm">
+                      {new Date(shareData.expiresAt).toLocaleDateString()}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {new Date(shareData.expiresAt).toLocaleTimeString()}
+                    </p>
                   </div>
                 </div>
 
@@ -226,8 +250,14 @@ const ReceiveFilePage = () => {
                   </div>
                   <div>
                     <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Download limit</span>
-                    <p className="font-bold text-gray-900 text-sm">3 downloads</p>
-                    <p className="text-xs text-gray-500 mt-0.5">0 / 3 used</p>
+                    <p className="font-bold text-gray-900 text-sm">
+                      {shareData.maxDownloads === null ? 'Unlimited downloads' : `${shareData.maxDownloads} downloads`}
+                    </p>
+                    {shareData.maxDownloads !== null && (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        {shareData.maxDownloads - shareData.remainingDownloads} / {shareData.maxDownloads} used
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -237,9 +267,24 @@ const ReceiveFilePage = () => {
                   </div>
                   <div>
                     <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Permission</span>
-                    <p className="font-bold text-gray-900 text-sm">View Only</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Open in secure viewer</p>
+                    <p className="font-bold text-gray-900 text-sm">
+                      {shareData.maxDownloads === null ? 'Download Allowed' : (shareData.maxDownloads === 1 ? 'Download Once' : 'Download Allowed')}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {shareData.requiresLogin ? 'Login required' : 'Open access'}
+                    </p>
                   </div>
+                </div>
+
+                <div className="pt-4">
+                  <button 
+                    onClick={handleDownload}
+                    disabled={downloading || shareData.status !== 'active' || (shareData.maxDownloads !== null && shareData.remainingDownloads <= 0)}
+                    className="w-full bg-[#E5F876] hover:bg-[#d4ec55] text-black py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    {downloading ? 'Downloading...' : 'Download File'}
+                  </button>
                 </div>
               </div>
             ) : (
