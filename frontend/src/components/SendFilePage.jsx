@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createShare, shareLink, uploadFile } from '../api';
 import { 
   ArrowLeft, CloudUpload, X, Plus, ChevronDown, Eye, Download, 
   Lock, CheckCircle2, QrCode, FileText, Check, Circle, Mail, User, Info, ArrowRight, ShieldCheck
@@ -15,6 +16,17 @@ const SendFilePage = () => {
   const [downloadLimit, setDownloadLimit] = useState(3);
   const [deliveryMode, setDeliveryMode] = useState('view');
   const [advancedSecurityOpen, setAdvancedSecurityOpen] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [error, setError] = useState('');
+
+  const selectFile = (selectedFile) => {
+    setFile({
+      original: selectedFile,
+      name: selectedFile.name,
+      size: (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB',
+    });
+    setError('');
+  };
   
   const handleAddRecipient = () => {
     if (emailInput) {
@@ -35,15 +47,36 @@ const SendFilePage = () => {
   const handleDrop = (e) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const droppedFile = e.dataTransfer.files[0];
-      setFile({ name: droppedFile.name, size: (droppedFile.size / (1024*1024)).toFixed(2) + ' MB' });
+      selectFile(e.dataTransfer.files[0]);
     }
   };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      const selectedFile = e.target.files[0];
-      setFile({ name: selectedFile.name, size: (selectedFile.size / (1024*1024)).toFixed(2) + ' MB' });
+      selectFile(e.target.files[0]);
+    }
+  };
+
+  const handleShare = async () => {
+    if (!file?.original) return setError('Please choose a file first');
+    if (!recipients.length) return setError('Add at least one recipient');
+
+    setIsSharing(true);
+    setError('');
+    try {
+      const uploaded = await uploadFile(file.original);
+      const expiresInMinutes = noExpiry
+        ? 365 * 24 * 60
+        : (Number(expiryHours) || 0) * 60 + (Number(expiryMinutes) || 0);
+      const share = await createShare(uploaded.id, expiresInMinutes, {
+        allowedEmails: recipients.map((recipient) => recipient.email),
+        maxDownloads: downloadLimit,
+      });
+      window.location.href = shareLink(share.code);
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -445,15 +478,18 @@ const SendFilePage = () => {
             {/* Actions */}
             <div>
               <button 
+                onClick={handleShare}
+                disabled={isSharing}
                 className="w-full bg-[#1A1D27] hover:bg-black text-white py-3.5 px-2 rounded-full font-bold text-sm flex items-center justify-between transition-colors shadow-md relative"
               >
                 <div className="flex-1 text-center pr-8 pl-12">
-                  Generate Secure Link
+                  {isSharing ? 'Uploading...' : 'Generate Secure Link'}
                 </div>
                 <div className="w-9 h-9 bg-[#E5F876] rounded-full flex items-center justify-center mr-1 text-black flex-shrink-0 absolute right-1">
                   <ArrowRight className="w-4 h-4" />
                 </div>
               </button>
+              {error && <p className="text-center text-sm text-red-600 mt-3">{error}</p>}
               
               <p className="text-center text-xs text-gray-500 mt-4 px-2">
                 Your file will be securely shared with the selected recipients.

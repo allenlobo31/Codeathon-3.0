@@ -68,11 +68,11 @@ export async function uploadFile(file) {
   return fetchWithAuth('/api/files', { method: 'POST', body: form });
 }
 
-export async function createShare(fileId, expiresInMinutes) {
+export async function createShare(fileId, expiresInMinutes, options = {}) {
   return fetchWithAuth('/api/shares', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ fileId, expiresInMinutes }),
+    body: JSON.stringify({ fileId, expiresInMinutes, ...options }),
   });
 }
 
