@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const shareSchema = new mongoose.Schema(
   {
     code: { type: String, required: true, unique: true },
+    link: { type: String },
     file: { type: mongoose.Schema.Types.ObjectId, ref: 'File', required: true },
     owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true }, // the sender
     expiresAt: { type: Date, required: true },

@@ -19,6 +19,9 @@ const DEAD_STATUS_MESSAGE = {
 };
 
 router.get('/:code/download', optionalAuth, async (req, res) => {
+  if (!/^\d{6}$/.test(req.params.code)) {
+    return res.status(400).json({ error: 'Share code must be 6 digits' });
+  }
   const share = await Share.findOne({ code: req.params.code }).populate('file');
   if (!share) return res.status(404).json({ error: 'Share not found' });
 

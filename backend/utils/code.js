@@ -1,8 +1,8 @@
 const crypto = require('crypto');
 
-// 12-character unguessable share code (e.g. "k3J9xQ2mT8aB")
+// Six-digit share code.
 function generateCode() {
-  return crypto.randomBytes(9).toString('base64url');
+  return String(crypto.randomInt(100000, 1000000));
 }
 
 module.exports = { generateCode };

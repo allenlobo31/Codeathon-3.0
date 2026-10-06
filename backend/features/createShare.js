@@ -102,8 +102,11 @@ router.post('/', requireAuth, async (req, res) => {
   let share;
   for (let attempt = 0; attempt < 3 && !share; attempt++) {
     try {
+      const code = generateCode();
+      const link = buildShareLink(code);
       share = await Share.create({
-        code: generateCode(),
+        code,
+        link,
         file: file._id,
         owner: req.user._id,
         expiresAt: expiry.date,
@@ -116,11 +119,10 @@ router.post('/', requireAuth, async (req, res) => {
   }
   if (!share) return res.status(500).json({ error: 'Could not generate a unique code, try again' });
 
-  const link = buildShareLink(share.code);
   res.status(201).json({
     code: share.code,
-    link,
-    qr: await makeQrDataUrl(link),
+    link: share.link || buildShareLink(share.code),
+    qr: await makeQrDataUrl(share.link || buildShareLink(share.code)),
     expiresAt: share.expiresAt,
     allowedEmails: share.allowedEmails,
     maxDownloads: share.maxDownloads,

@@ -6,17 +6,22 @@ import { getShareInfo, downloadUrl } from '../api';
 
 const ReceiveFilePage = () => {
   const [accessCode, setAccessCode] = useState('');
+<<<<<<< Updated upstream
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [fileReceived, setFileReceived] = useState(false);
   const [shareData, setShareData] = useState(null);
   const [error, setError] = useState(null);
   const [downloading, setDownloading] = useState(false);
+=======
+  const [error, setError] = useState('');
+>>>>>>> Stashed changes
 
   const onBack = () => {
     window.location.href = '/';
   };
 
+<<<<<<< Updated upstream
   const handleAccess = async () => {
     if (!accessCode) return setError('Please enter an access code');
     setError(null);
@@ -26,7 +31,16 @@ const ReceiveFilePage = () => {
       setFileReceived(true);
     } catch (err) {
       setError(err.message || 'Failed to retrieve file info');
+=======
+  const handleAccess = (event) => {
+    event.preventDefault();
+    const code = accessCode.trim();
+    if (!/^\d{6}$/.test(code)) {
+      setError('Enter the 6-digit code from the sender');
+      return;
+>>>>>>> Stashed changes
     }
+    window.location.href = `/s/${code}`;
   };
 
   const handleDownload = () => {
@@ -88,9 +102,14 @@ const ReceiveFilePage = () => {
 
               <div className="border border-gray-100 bg-[#FAFAFA] rounded-2xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm ${fileReceived ? 'bg-[#FF3B30]' : 'bg-gray-200'}`}>
-                    <FileText className={`w-6 h-6 ${fileReceived ? 'text-white' : 'text-gray-400'}`} />
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-gray-200">
+                    <FileText className="w-6 h-6 text-gray-400" />
                   </div>
+                  <div>
+                    <h3 className="font-bold text-gray-400 text-[15px] italic">Enter a share code</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">The file details will appear next</p>
+                  </div>
+<<<<<<< Updated upstream
                   {fileReceived && shareData ? (
                     <div>
                       <h3 className="font-bold text-gray-900 text-[15px]">{shareData.fileName || 'Unknown File'}</h3>
@@ -104,6 +123,8 @@ const ReceiveFilePage = () => {
                       <p className="text-xs text-gray-400 mt-0.5">-- MB</p>
                     </div>
                   )}
+=======
+>>>>>>> Stashed changes
                 </div>
                 <div className="bg-[#E5F876] bg-opacity-70 text-black px-3 py-1.5 rounded-full text-xs font-semibold flex items-center shadow-sm">
                   <Lock className="w-3.5 h-3.5 mr-1.5" />
@@ -138,29 +159,6 @@ const ReceiveFilePage = () => {
                   </div>
                 </div>
 
-                {/* Password */}
-                <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">
-                    Enter Password <span className="font-normal text-gray-500">(if required)</span>
-                  </label>
-                  <div className="relative">
-                    <Lock className="w-4 h-4 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-                    <input 
-                      type={showPassword ? "text" : "password"} 
-                      placeholder="Enter password" 
-                      className="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-10 py-3.5 text-sm focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-shadow"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <button 
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      {showPassword ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
                 {/* Access Button */}
                 <div className="pt-2">
                   <button 
@@ -168,7 +166,7 @@ const ReceiveFilePage = () => {
                     className="w-full bg-[#1A1D27] hover:bg-black text-white py-3.5 px-2 rounded-full font-bold text-sm flex items-center justify-between transition-colors shadow-md relative"
                   >
                     <div className="flex-1 text-center pr-8 pl-12">
-                      Access File
+                      Find File
                     </div>
                     <div className="w-9 h-9 bg-[#E5F876] rounded-full flex items-center justify-center mr-1 text-black flex-shrink-0 absolute right-1">
                       <ArrowRight className="w-4 h-4" />
@@ -176,6 +174,7 @@ const ReceiveFilePage = () => {
                   </button>
                   {error && <p className="text-center text-sm text-red-600 mt-2 font-medium">{error}</p>}
                 </div>
+                {error && <p className="text-center text-sm text-red-600">{error}</p>}
 
                 {/* Divider */}
                 <div className="flex items-center justify-center my-6">
@@ -214,18 +213,27 @@ const ReceiveFilePage = () => {
               <p className="text-sm text-gray-500 mt-1">Details about this shared file.</p>
             </div>
 
+<<<<<<< Updated upstream
             {fileReceived && shareData ? (
               <div className="space-y-6 mb-8">
                 
+=======
+            <div className="space-y-6 mb-8">
+>>>>>>> Stashed changes
                 <div className="flex items-start gap-5">
                   <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
                     <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
+<<<<<<< Updated upstream
                     <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Status</span>
                     <p className={`font-bold text-sm ${shareData.status === 'active' ? 'text-green-600' : 'text-red-600'}`}>
                       {shareData.status === 'active' ? 'Active' : 'Expired / Revoked'}
                     </p>
+=======
+                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Shared by</span>
+                    <p className="font-bold text-gray-500 text-sm">Shown after code lookup</p>
+>>>>>>> Stashed changes
                   </div>
                 </div>
 
@@ -234,6 +242,7 @@ const ReceiveFilePage = () => {
                     <Calendar className="w-4 h-4" />
                   </div>
                   <div>
+<<<<<<< Updated upstream
                     <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Expires on</span>
                     <p className="font-bold text-gray-900 text-sm">
                       {new Date(shareData.expiresAt).toLocaleDateString()}
@@ -241,6 +250,20 @@ const ReceiveFilePage = () => {
                     <p className="text-xs text-gray-500 mt-0.5">
                       {new Date(shareData.expiresAt).toLocaleTimeString()}
                     </p>
+=======
+                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Shared on</span>
+                    <p className="font-bold text-gray-500 text-sm">Shown after code lookup</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-5">
+                  <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-600 bg-[#FAFAFA]">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Expires in</span>
+                    <p className="font-bold text-gray-500 text-sm">Shown after code lookup</p>
+>>>>>>> Stashed changes
                   </div>
                 </div>
 
@@ -250,6 +273,7 @@ const ReceiveFilePage = () => {
                   </div>
                   <div>
                     <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Download limit</span>
+<<<<<<< Updated upstream
                     <p className="font-bold text-gray-900 text-sm">
                       {shareData.maxDownloads === null ? 'Unlimited downloads' : `${shareData.maxDownloads} downloads`}
                     </p>
@@ -258,6 +282,9 @@ const ReceiveFilePage = () => {
                         {shareData.maxDownloads - shareData.remainingDownloads} / {shareData.maxDownloads} used
                       </p>
                     )}
+=======
+                    <p className="font-bold text-gray-500 text-sm">Shown after code lookup</p>
+>>>>>>> Stashed changes
                   </div>
                 </div>
 
@@ -267,6 +294,7 @@ const ReceiveFilePage = () => {
                   </div>
                   <div>
                     <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1">Permission</span>
+<<<<<<< Updated upstream
                     <p className="font-bold text-gray-900 text-sm">
                       {shareData.maxDownloads === null ? 'Download Allowed' : (shareData.maxDownloads === 1 ? 'Download Once' : 'Download Allowed')}
                     </p>
@@ -293,6 +321,12 @@ const ReceiveFilePage = () => {
                 <p className="text-sm font-medium text-gray-500">Enter a valid access code to view share details and download limits.</p>
               </div>
             )}
+=======
+                    <p className="font-bold text-gray-500 text-sm">Shown after code lookup</p>
+                  </div>
+                </div>
+            </div>
+>>>>>>> Stashed changes
 
 
 

@@ -85,6 +85,17 @@ export async function getShareInfo(code) {
   return fetchWithAuth(`/api/shares/${code}`);
 }
 
+export async function downloadShare(code) {
+  const token = getToken();
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const res = await fetch(`${API}/api/shares/${code}/download`, { headers });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Download failed');
+  }
+  return { blob: await res.blob(), fileName: res.headers.get('Content-Disposition') };
+}
+
 export async function revokeShare(code) {
   return fetchWithAuth(`/api/shares/${code}/revoke`, { method: 'PATCH' });
 }
