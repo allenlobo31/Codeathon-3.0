@@ -57,7 +57,6 @@ const History = ({ user, onLogout }) => {
           </a>
           <div className="nav-links">
             <a href="/history" style={{opacity: 1, borderBottom: '2px solid var(--text-main)'}}>History</a>
-            <a href="/my-files">My Files</a>
           </div>
           <div className="auth-buttons">
             <span style={{ marginRight: '1rem', fontWeight: '500' }}>{user.name}</span>

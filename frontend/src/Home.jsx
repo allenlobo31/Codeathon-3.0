@@ -14,7 +14,6 @@ const Home = ({ user, onLogout }) => {
           </div>
           <div className="nav-links">
             <a href="/history">History</a>
-            <a href="/my-files">My Files</a>
           </div>
           <div className="auth-buttons">
             {user ? (
