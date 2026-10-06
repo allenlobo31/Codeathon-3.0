@@ -71,6 +71,7 @@ const SendFilePage = () => {
       const share = await createShare(uploaded.id, expiresInMinutes, {
         allowedEmails: recipients.map((recipient) => recipient.email),
         deliveryMode,
+        ...(deliveryMode === 'download_allowed' && { maxDownloads: downloadLimit }),
       });
       setCreatedShare(share);
     } catch (requestError) {

@@ -74,7 +74,7 @@ function cleanEmails(input) {
 }
 
 router.post('/', requireAuth, async (req, res) => {
-  const { fileId, expiryPreset, expiresInMinutes, expiresAt, allowedEmails, deliveryMode = 'view' } = req.body || {};
+  const { fileId, expiryPreset, expiresInMinutes, expiresAt, allowedEmails, deliveryMode = 'view', maxDownloads } = req.body || {};
 
   if (!fileId || !mongoose.isValidObjectId(fileId)) {
     return res.status(400).json({ error: 'A valid fileId is required' });
@@ -90,7 +90,15 @@ router.post('/', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'deliveryMode must be view, download_once or download_allowed' });
   }
 
-  const limit = deliveryMode === 'download_once' ? 1 : null;
+  let limit = null;
+  if (deliveryMode === 'download_once') {
+    limit = 1;
+  } else if (deliveryMode === 'download_allowed') {
+    limit = Number(maxDownloads);
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100000) {
+      return res.status(400).json({ error: 'maxDownloads must be a whole number between 1 and 100000' });
+    }
+  }
 
   // You can only share your own files
   const file = await File.findOne({ _id: fileId, owner: req.user._id });
