@@ -22,6 +22,7 @@ router.get('/:code', optionalAuth, async (req, res) => {
   res.json({
     fileName: accessAllowed ? (share.file ? share.file.originalName : 'Unknown') : null,
     size: accessAllowed ? (share.file ? share.file.size : 0) : null,
+    mimeType: accessAllowed ? (share.file ? share.file.mimeType : null) : null,
     expiresAt: share.expiresAt,
     status: getStatus(share),
     restricted,

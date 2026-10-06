@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createShare, uploadFile } from '../api';
+import { encryptFile, generateShareCode } from '../crypto';
 import { 
   ArrowLeft, CloudUpload, X, Plus, ChevronDown, Eye, Download, 
   Lock, CheckCircle2, QrCode, FileText, Check, Circle, Mail, User, Info, ArrowRight, ShieldCheck
@@ -64,13 +65,16 @@ const SendFilePage = () => {
     setIsSharing(true);
     setError('');
     try {
-      const uploaded = await uploadFile(file.original);
+      const code = generateShareCode();
+      const encryptedFile = await encryptFile(file.original, code);
+      const uploaded = await uploadFile(encryptedFile);
       const expiresInMinutes = noExpiry
         ? 365 * 24 * 60
         : (Number(expiryHours) || 0) * 60 + (Number(expiryMinutes) || 0);
       const share = await createShare(uploaded.id, expiresInMinutes, {
         allowedEmails: recipients.map((recipient) => recipient.email),
         deliveryMode,
+        code,
         ...(deliveryMode === 'download_allowed' && { maxDownloads: downloadLimit }),
       });
       setCreatedShare(share);

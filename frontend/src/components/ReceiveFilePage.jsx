@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowLeft, Download, FileText, Key, Lock, ShieldCheck } from 'lucide-react';
 import mammoth from 'mammoth';
 import { downloadShare, getShareInfo, viewShare } from '../api';
+import { decryptBlob } from '../crypto';
 
 const ReceiveFilePage = () => {
   const [accessCode, setAccessCode] = useState('');
@@ -37,10 +38,12 @@ const ReceiveFilePage = () => {
       }
 
       if (data.deliveryMode === 'view') {
-        const blob = await viewShare(code);
+        const encryptedBlob = await viewShare(code);
+        const blob = await decryptBlob(encryptedBlob, code, data.mimeType);
         await showPreview(blob, data.fileName, previewWindow);
       } else {
-        const { blob } = await downloadShare(code);
+        const { blob: encryptedBlob } = await downloadShare(code);
+        const blob = await decryptBlob(encryptedBlob, code, data.mimeType);
         downloadBlob(blob, data.fileName || 'shared-file');
         await showPreview(blob, data.fileName, previewWindow);
         if (data.remainingDownloads !== null) {
@@ -88,7 +91,8 @@ const ReceiveFilePage = () => {
     setDownloading(true);
     setError('');
     try {
-      const { blob } = await downloadShare(accessCode.trim());
+      const { blob: encryptedBlob } = await downloadShare(accessCode.trim());
+      const blob = await decryptBlob(encryptedBlob, accessCode.trim(), shareData.mimeType);
       downloadBlob(blob, shareData.fileName || 'shared-file');
       setShareData((current) => current && current.remainingDownloads !== null
         ? { ...current, remainingDownloads: Math.max(current.remainingDownloads - 1, 0) }
@@ -105,7 +109,8 @@ const ReceiveFilePage = () => {
     setPreviewing(true);
     setError('');
     try {
-      const blob = await viewShare(accessCode.trim());
+      const encryptedBlob = await viewShare(accessCode.trim());
+      const blob = await decryptBlob(encryptedBlob, accessCode.trim(), shareData.mimeType);
       const mimeType = blob.type || 'application/octet-stream';
       if (mimeType.includes('wordprocessingml') || shareData.fileName.toLowerCase().endsWith('.docx')) {
         const arrayBuffer = await blob.arrayBuffer();

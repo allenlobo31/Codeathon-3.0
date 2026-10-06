@@ -74,7 +74,7 @@ function cleanEmails(input) {
 }
 
 router.post('/', requireAuth, async (req, res) => {
-  const { fileId, expiryPreset, expiresInMinutes, expiresAt, allowedEmails, deliveryMode = 'view', maxDownloads } = req.body || {};
+  const { fileId, expiryPreset, expiresInMinutes, expiresAt, allowedEmails, deliveryMode = 'view', maxDownloads, code: requestedCode } = req.body || {};
 
   if (!fileId || !mongoose.isValidObjectId(fileId)) {
     return res.status(400).json({ error: 'A valid fileId is required' });
@@ -88,6 +88,9 @@ router.post('/', requireAuth, async (req, res) => {
 
   if (!['view', 'download_once', 'download_allowed'].includes(deliveryMode)) {
     return res.status(400).json({ error: 'deliveryMode must be view, download_once or download_allowed' });
+  }
+  if (requestedCode !== undefined && !/^\d{6}$/.test(requestedCode)) {
+    return res.status(400).json({ error: 'code must be exactly 6 digits' });
   }
 
   let limit = null;
@@ -108,7 +111,7 @@ router.post('/', requireAuth, async (req, res) => {
   let share;
   for (let attempt = 0; attempt < 3 && !share; attempt++) {
     try {
-      const code = generateCode();
+      const code = attempt === 0 && requestedCode ? requestedCode : generateCode();
       const link = buildShareLink(code);
       share = await Share.create({
         code,
@@ -121,6 +124,9 @@ router.post('/', requireAuth, async (req, res) => {
         maxDownloads: limit,
       });
     } catch (err) {
+      if (err.code === 11000 && requestedCode) {
+        return res.status(409).json({ error: 'Share code collision, please try again' });
+      }
       if (err.code !== 11000) throw err;
     }
   }
