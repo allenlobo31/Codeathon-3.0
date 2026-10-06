@@ -47,6 +47,7 @@ This repository contains:
 
 ## Project Structure
 
+```bash
 Codeathon-3.0/
 ├── backend/
 │   ├── config/
@@ -73,6 +74,8 @@ Codeathon-3.0/
 │   └── ...
 ├── README.md
 └── ...
+```
+
 
 ## Prerequisites
 
