@@ -2,6 +2,7 @@ import { useState } from 'react'
 import UploadForm from './components/UploadForm'
 import ShareList from './components/ShareList'
 import DownloadPage from './components/DownloadPage'
+import SendFilePage from './components/SendFilePage'
 import Home from './Home'
 function App() {
   const [refreshKey, setRefreshKey] = useState(0)
@@ -14,6 +15,10 @@ function App() {
     return <Home />
   }
 
+  if (window.location.pathname === '/send') {
+    return <SendFilePage />
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4">
       <div className="max-w-3xl mx-auto space-y-6">
@@ -21,11 +26,6 @@ function App() {
 
         {match ? (
           <DownloadPage code={match[1]} />
-        ) : window.location.pathname === '/send' ? (
-          <>
-            <UploadForm onShared={() => setRefreshKey((n) => n + 1)} />
-            <ShareList refreshKey={refreshKey} />
-          </>
         ) : window.location.pathname === '/receive' ? (
           <div className="bg-white rounded-xl shadow p-6 flex gap-2">
             <input
