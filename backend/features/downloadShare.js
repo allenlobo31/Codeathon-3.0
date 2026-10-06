@@ -88,4 +88,38 @@ router.get('/:code/download', optionalAuth, async (req, res) => {
   stream.pipe(res);
 });
 
+router.get('/:code/view', optionalAuth, async (req, res) => {
+  if (!/^\d{6}$/.test(req.params.code)) {
+    return res.status(400).json({ error: 'Share code must be 6 digits' });
+  }
+  const share = await Share.findOne({ code: req.params.code }).populate('file');
+  if (!share) return res.status(404).json({ error: 'Share not found' });
+
+  const status = getStatus(share);
+  if (status !== 'active') {
+    return res.status(410).json({ error: DEAD_STATUS_MESSAGE[status], status });
+  }
+  if (share.allowedEmails.length > 0) {
+    if (!req.user) return res.status(401).json({ error: 'Login required to view this file' });
+    if (!share.allowedEmails.includes(req.user.email)) {
+      return res.status(403).json({ error: 'Your email is not allowed to view this file' });
+    }
+  }
+  if (share.deliveryMode !== 'view') {
+    return res.status(403).json({ error: 'Preview is available only for view-only shares' });
+  }
+  if (!share.file) return res.status(404).json({ error: 'File not found' });
+
+  await logAccess(req, share, { outcome: 'allowed', reason: 'view' });
+  res.set('Content-Type', share.file.mimeType || 'application/octet-stream');
+  res.set('Content-Length', share.file.size);
+  res.set('Content-Disposition', 'inline');
+  const stream = openDownloadStream(share.file.gridfsId);
+  stream.on('error', () => {
+    if (!res.headersSent) res.status(404).json({ error: 'File data not found' });
+    else res.destroy();
+  });
+  stream.pipe(res);
+});
+
 module.exports = router;

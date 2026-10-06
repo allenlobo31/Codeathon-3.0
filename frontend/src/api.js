@@ -96,6 +96,17 @@ export async function downloadShare(code) {
   return { blob: await res.blob(), fileName: res.headers.get('Content-Disposition') };
 }
 
+export async function viewShare(code) {
+  const token = getToken();
+  const headers = token ? { Authorization: `Bearer ${token}` } : {};
+  const res = await fetch(`${API}/api/shares/${code}/view`, { headers });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || 'Preview failed');
+  }
+  return res.blob();
+}
+
 export async function revokeShare(code) {
   return fetchWithAuth(`/api/shares/${code}/revoke`, { method: 'PATCH' });
 }
