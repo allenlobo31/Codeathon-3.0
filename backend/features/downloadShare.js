@@ -44,6 +44,11 @@ router.get('/:code/download', optionalAuth, async (req, res) => {
     }
   }
 
+  if (share.deliveryMode === 'view') {
+    await logAccess(req, share, { outcome: 'denied', reason: 'view_only' });
+    return res.status(403).json({ error: 'This share is view only; downloading is disabled' });
+  }
+
   if (!share.file) {
     await logAccess(req, share, { outcome: 'denied', reason: 'file_missing' });
     return res.status(404).json({ error: 'File not found' });

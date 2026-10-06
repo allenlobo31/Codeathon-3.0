@@ -68,13 +68,9 @@ const SendFilePage = () => {
       const expiresInMinutes = noExpiry
         ? 365 * 24 * 60
         : (Number(expiryHours) || 0) * 60 + (Number(expiryMinutes) || 0);
-      let finalMaxDownloads = null;
-      if (deliveryMode === 'download_once') finalMaxDownloads = 1;
-      else if (deliveryMode === 'download_allowed') finalMaxDownloads = downloadLimit;
-
       const share = await createShare(uploaded.id, expiresInMinutes, {
         allowedEmails: recipients.map((recipient) => recipient.email),
-        ...(deliveryMode !== 'view' && { maxDownloads: finalMaxDownloads })
+        deliveryMode,
       });
       setCreatedShare(share);
     } catch (requestError) {

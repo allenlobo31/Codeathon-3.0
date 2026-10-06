@@ -9,6 +9,7 @@ const shareSchema = new mongoose.Schema(
     expiresAt: { type: Date, required: true },
     revokedAt: { type: Date, default: null },
     allowedEmails: { type: [String], default: [] }, // empty = anyone with the link; otherwise only these (logged-in) emails
+    deliveryMode: { type: String, enum: ['view', 'download_once', 'download_allowed'], default: 'view' },
     maxDownloads: { type: Number, default: null, min: 1 }, // null = unlimited
     downloadCount: { type: Number, default: 0 },
   },

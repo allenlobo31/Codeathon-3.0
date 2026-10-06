@@ -74,7 +74,7 @@ function cleanEmails(input) {
 }
 
 router.post('/', requireAuth, async (req, res) => {
-  const { fileId, expiryPreset, expiresInMinutes, expiresAt, allowedEmails, maxDownloads } = req.body || {};
+  const { fileId, expiryPreset, expiresInMinutes, expiresAt, allowedEmails, deliveryMode = 'view' } = req.body || {};
 
   if (!fileId || !mongoose.isValidObjectId(fileId)) {
     return res.status(400).json({ error: 'A valid fileId is required' });
@@ -86,13 +86,11 @@ router.post('/', requireAuth, async (req, res) => {
   const recipients = cleanEmails(allowedEmails);
   if (recipients.error) return res.status(400).json({ error: recipients.error });
 
-  let limit = null;
-  if (maxDownloads !== undefined && maxDownloads !== null && maxDownloads !== '') {
-    limit = Number(maxDownloads);
-    if (!Number.isInteger(limit) || limit < 1 || limit > 100000) {
-      return res.status(400).json({ error: 'maxDownloads must be a whole number between 1 and 100000' });
-    }
+  if (!['view', 'download_once', 'download_allowed'].includes(deliveryMode)) {
+    return res.status(400).json({ error: 'deliveryMode must be view, download_once or download_allowed' });
   }
+
+  const limit = deliveryMode === 'download_once' ? 1 : null;
 
   // You can only share your own files
   const file = await File.findOne({ _id: fileId, owner: req.user._id });
@@ -111,6 +109,7 @@ router.post('/', requireAuth, async (req, res) => {
         owner: req.user._id,
         expiresAt: expiry.date,
         allowedEmails: recipients.emails,
+        deliveryMode,
         maxDownloads: limit,
       });
     } catch (err) {
@@ -125,6 +124,7 @@ router.post('/', requireAuth, async (req, res) => {
     qr: await makeQrDataUrl(share.link || buildShareLink(share.code)),
     expiresAt: share.expiresAt,
     allowedEmails: share.allowedEmails,
+    deliveryMode: share.deliveryMode,
     maxDownloads: share.maxDownloads,
   });
 });

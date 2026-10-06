@@ -27,6 +27,7 @@ router.get('/:code', optionalAuth, async (req, res) => {
     restricted,
     requiresLogin: restricted && !req.user,
     accessAllowed,
+    deliveryMode: share.deliveryMode,
     maxDownloads: share.maxDownloads,
     remainingDownloads: share.maxDownloads == null ? null : Math.max(share.maxDownloads - share.downloadCount, 0),
   });
