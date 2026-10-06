@@ -4,6 +4,8 @@ import ShareList from './components/ShareList'
 import DownloadPage from './components/DownloadPage'
 import SendFilePage from './components/SendFilePage'
 import Home from './Home'
+import SignIn from './SignIn'
+import SignUp from './SignUp'
 function App() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [codeInput, setCodeInput] = useState('')
@@ -13,10 +15,6 @@ function App() {
 
   if (window.location.pathname === '/') {
     return <Home />
-  }
-
-  if (window.location.pathname === '/send') {
-    return <SendFilePage />
   }
 
   return (
