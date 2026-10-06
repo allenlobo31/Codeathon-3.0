@@ -1,7 +1,7 @@
 import React from 'react';
 import './Home.css';
 
-const Home = () => {
+const Home = ({ user, onLogout }) => {
   return (
     <div className="home-container">
       <div className="content-wrapper">
@@ -17,8 +17,17 @@ const Home = () => {
             <a href="/my-files">My Files</a>
           </div>
           <div className="auth-buttons">
-            <a href="/signin" className="btn btn-login" style={{textDecoration: 'none'}}>Sign in</a>
-            <a href="/signup" className="btn btn-signup" style={{textDecoration: 'none'}}>Sign up</a>
+            {user ? (
+              <>
+                <span style={{ marginRight: '1rem', fontWeight: '500' }}>{user.name}</span>
+                <button onClick={onLogout} className="btn btn-login" style={{ cursor: 'pointer' }}>Log out</button>
+              </>
+            ) : (
+              <>
+                <a href="/signin" className="btn btn-login" style={{textDecoration: 'none'}}>Sign in</a>
+                <a href="/signup" className="btn btn-signup" style={{textDecoration: 'none'}}>Sign up</a>
+              </>
+            )}
           </div>
         </nav>
 
