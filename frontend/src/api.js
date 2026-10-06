@@ -76,9 +76,15 @@ export async function createShare(fileId, expiresInMinutes, options = {}) {
   });
 }
 
-export async function listShares(q = '', status = '') {
-  const params = new URLSearchParams({ q, status });
+export async function listShares(q = '', status = '', options = {}) {
+  const params = new URLSearchParams({ q, status, ...options });
   return fetchWithAuth(`/api/shares?${params}`);
+}
+
+export async function getActivity(options = {}) {
+  const params = new URLSearchParams(options);
+  const data = await fetchWithAuth(`/api/activity?${params}`);
+  return data.logs || [];
 }
 
 export async function getShareInfo(code) {

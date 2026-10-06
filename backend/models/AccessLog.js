@@ -11,7 +11,7 @@ const accessLogSchema = new mongoose.Schema(
     email: { type: String, default: null },
     ip: String,
     userAgent: String,
-    action: { type: String, enum: ['download'], default: 'download' },
+    action: { type: String, enum: ['download', 'view'], default: 'download' },
     outcome: { type: String, enum: ['allowed', 'denied'], required: true },
     // set when denied: revoked | expired | limit_reached | login_required | email_not_allowed | file_missing
     reason: { type: String, default: null },

@@ -1,216 +1,110 @@
-import React, { useState, useEffect } from 'react';
-import './Home.css'; // For navbar styles
+import React, { useEffect, useState } from 'react';
+import './Home.css';
 import './History.css';
-import { listShares } from './api';
+import { getActivity, listShares, logout, revokeShare, shareLink } from './api';
 
-const History = ({ user, onLogout }) => {
-  const [filter, setFilter] = useState('all');
-  const [historyData, setHistoryData] = useState([]);
+const formatDate = (value) => value
+  ? new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+  : '-';
+
+const formatSize = (bytes) => `${((bytes || 0) / (1024 * 1024)).toFixed(2)} MB`;
+
+export default function History({ user, onLogout }) {
+  const [shares, setShares] = useState([]);
+  const [activity, setActivity] = useState([]);
+  const [query, setQuery] = useState('');
+  const [status, setStatus] = useState('');
+  const [type, setType] = useState('all');
+  const [activityFilter, setActivityFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [copiedId, setCopiedId] = useState(null);
+  const [revoking, setRevoking] = useState('');
 
   useEffect(() => {
-    // History is private: send logged-out visitors to sign in
     if (!user) {
       window.location.href = '/signin';
       return;
     }
-    listShares()
-      .then(data => setHistoryData(Array.isArray(data) ? data : []))
-      .catch(err => setError(err.message || 'Could not load history'))
-      .finally(() => setLoading(false));
-  }, [user]);
 
-  const handleCopy = async (item) => {
+    setLoading(true);
+    Promise.all([
+      listShares(query, status),
+      getActivity({ q: query, ...(activityFilter !== 'all' && { outcome: activityFilter }) }),
+    ])
+      .then(([shareData, activityData]) => {
+        setShares(Array.isArray(shareData) ? shareData : []);
+        setActivity(Array.isArray(activityData) ? activityData : []);
+        setError('');
+      })
+      .catch((requestError) => setError(requestError.message || 'Could not load history'))
+      .finally(() => setLoading(false));
+  }, [user, query, status, activityFilter]);
+
+  const handleRevoke = async (share) => {
+    if (!window.confirm(`Revoke access to ${share.fileName}?`)) return;
+    setRevoking(share.code);
     try {
-      await navigator.clipboard.writeText(item.code);
-      setCopiedId(item.id);
-      setTimeout(() => setCopiedId(null), 1500);
-    } catch {
-      window.prompt('Share code:', item.code);
+      await revokeShare(share.code);
+      setShares((current) => current.map((item) => item.code === share.code
+        ? { ...item, status: 'revoked', revokedAt: new Date().toISOString() }
+        : item));
+    } catch (requestError) {
+      setError(requestError.message || 'Could not revoke access');
+    } finally {
+      setRevoking('');
     }
   };
 
-  const formatDate = (value) =>
-    value ? new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '-';
+  const copyCode = async (code) => {
+    await navigator.clipboard?.writeText(code);
+  };
 
-  const formatStatus = (status = '') =>
-    status ? status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ') : 'Unknown';
-
-  const filteredData = historyData.filter(item => {
-    if (filter === 'all') return true;
-    return item.type === filter;
-  });
+  const visibleShares = shares.filter((share) => type === 'all' || share.type === type);
 
   if (!user) return null;
 
   return (
     <div className="history-page">
       <div className="history-wrapper">
-        
-        {/* Navbar Reuse */}
         <nav className="navbar animate-up">
-          <a href="/" className="logo" style={{textDecoration: 'none', color: 'inherit'}}>
-            <div className="logo-dot"></div>
-            VaultX
-          </a>
-          <div className="nav-links">
-            <a href="/history" style={{opacity: 1, borderBottom: '2px solid var(--text-main)'}}>History</a>
-          </div>
-          <div className="auth-buttons">
-            <span style={{ marginRight: '1rem', fontWeight: '500' }}>{user.name}</span>
-            <button onClick={onLogout} className="btn btn-login" style={{ cursor: 'pointer' }}>Log out</button>
-          </div>
+          <a href="/" className="logo" style={{ textDecoration: 'none', color: 'inherit' }}><div className="logo-dot" />VaultX</a>
+          <div className="nav-links"><a href="/history" style={{ opacity: 1, borderBottom: '2px solid var(--text-main)' }}>History</a></div>
+          <div className="auth-buttons"><span style={{ marginRight: '1rem', fontWeight: '500' }}>{user.name}</span><button onClick={onLogout || logout} className="btn btn-login">Log out</button></div>
         </nav>
 
         <div className="history-header animate-up delay-1">
-          <div>
-            <h1 className="history-title">
-              Your <span className="highlight-pill">History</span>
-            </h1>
-            <p className="history-subtitle">View and manage your recent secure file transfers.</p>
-          </div>
-          
+          <div><h1 className="history-title">Your <span className="highlight-pill">History</span></h1><p className="history-subtitle">Track uploads, downloads, views, and access attempts.</p></div>
           <div className="history-controls">
-            <button 
-              className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-              onClick={() => setFilter('all')}
-            >
-              All Activity
-            </button>
-            <button 
-              className={`filter-btn ${filter === 'sent' ? 'active' : ''}`}
-              onClick={() => setFilter('sent')}
-            >
-              Sent
-            </button>
-            <button 
-              className={`filter-btn ${filter === 'received' ? 'active' : ''}`}
-              onClick={() => setFilter('received')}
-            >
-              Received
-            </button>
+            <button className={`filter-btn ${type === 'all' ? 'active' : ''}`} onClick={() => setType('all')}>All</button>
+            <button className={`filter-btn ${type === 'sent' ? 'active' : ''}`} onClick={() => setType('sent')}>Uploaded</button>
+            <button className={`filter-btn ${type === 'received' ? 'active' : ''}`} onClick={() => setType('received')}>Downloaded</button>
           </div>
         </div>
 
         <div className="history-card animate-up delay-2">
-          <div className="history-table-wrapper">
-            <table className="history-table">
-              <thead>
-                <tr>
-                  <th>File Details</th>
-                  <th>Transfer Type</th>
-                  <th>Date</th>
-                  <th>Status</th>
-                  <th style={{textAlign: 'center'}}>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan="5" style={{textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-muted)'}}>Loading history...</td>
-                  </tr>
-                ) : error ? (
-                  <tr>
-                    <td colSpan="5" style={{textAlign: 'center', padding: '4rem 1rem', color: '#dc2626'}}>{error}</td>
-                  </tr>
-                ) : filteredData.length > 0 ? (
-                  filteredData.map(item => {
-                    const fileName = String(item.fileName || 'Unnamed file');
-                    const lowerName = fileName.toLowerCase();
-                    return (
-                    <tr key={`${item.id}-${item.type}`}>
-                      <td>
-                        <div className="file-info">
-                          <div className="file-icon doc">
-                            {lowerName.endsWith('.pdf') ? (
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
-                              </svg>
-                            ) : lowerName.match(/\.(jpg|jpeg|png|gif|webp)$/) ? (
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                <polyline points="21 15 16 10 5 21"></polyline>
-                              </svg>
-                            ) : (
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                              </svg>
-                            )}
-                          </div>
-                          <div>
-                            <div className="file-name">{fileName}</div>
-                            <div className="file-size">{((item.size || 0) / (1024 * 1024)).toFixed(2)} MB · Code {item.code}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className={`transfer-type ${item.type}`}>
-                          {item.type === 'sent' ? (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <line x1="12" y1="19" x2="12" y2="5"></line>
-                              <polyline points="5 12 12 5 19 12"></polyline>
-                            </svg>
-                          ) : (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <line x1="12" y1="5" x2="12" y2="19"></line>
-                              <polyline points="19 12 12 19 5 12"></polyline>
-                            </svg>
-                          )}
-                          {item.type === 'sent' ? 'Sent' : 'Received'}
-                        </div>
-                      </td>
-                      <td>{formatDate(item.type === 'received' && item.receivedAt ? item.receivedAt : item.createdAt)}</td>
-                      <td>
-                        <span className={`status-pill ${item.status === 'active' ? 'completed' : 'pending'}`}>
-                          {formatStatus(item.status)}
-                        </span>
-                      </td>
-                      <td style={{textAlign: 'center'}}>
-                        <button
-                          id={`history-copy-${item.id}`}
-                          className="action-btn"
-                          title={copiedId === item.id ? 'Copied!' : 'Copy share code'}
-                          onClick={() => handleCopy(item)}
-                        >
-                          {copiedId === item.id ? (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                          ) : (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                          )}
-                        </button>
-                      </td>
-                    </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan="5" style={{textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-muted)'}}>
-                      <div style={{fontSize: '1.1rem', marginBottom: '0.5rem'}}>No transfer history found.</div>
-                      <div style={{fontSize: '0.9rem', opacity: 0.7}}>Your past files will appear here.</div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+          <div className="history-toolbar">
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search file, recipient, or email" />
+            <select value={status} onChange={(event) => setStatus(event.target.value)}><option value="">All statuses</option><option value="active">Active</option><option value="expired">Expired</option><option value="revoked">Revoked</option><option value="limit_reached">Limit reached</option></select>
           </div>
+          {loading ? <p className="history-empty">Loading history...</p> : error ? <p className="history-empty error">{error}</p> : visibleShares.length === 0 ? <p className="history-empty">No transfer history found.</p> : (
+            <div className="history-table-wrapper"><table className="history-table"><thead><tr><th>File</th><th>Type</th><th>Status</th><th>Downloads</th><th>Date</th><th>Actions</th></tr></thead><tbody>
+              {visibleShares.map((share) => <tr key={`${share.code}-${share.type}`}>
+                <td><div className="file-name">{share.fileName}</div><div className="file-size">{formatSize(share.size)} · Code {share.code}</div></td>
+                <td><span className={`transfer-type ${share.type}`}>{share.type === 'sent' ? 'Uploaded' : 'Downloaded'}{share.type === 'received' && share.timesReceived > 1 ? ` (${share.timesReceived}x)` : ''}</span></td>
+                <td><span className={`status-pill ${share.status === 'active' ? 'completed' : 'pending'}`}>{share.status.replace('_', ' ')}</span></td>
+                <td>{share.downloadCount}{share.maxDownloads === null ? ' / unlimited' : ` / ${share.maxDownloads}`}</td>
+                <td>{formatDate(share.type === 'received' ? share.receivedAt : share.createdAt)}</td>
+                <td className="history-actions"><button onClick={() => copyCode(share.code)} title="Copy code">Copy code</button>{share.type === 'sent' && share.status === 'active' && <button onClick={() => handleRevoke(share)} disabled={revoking === share.code} className="danger">{revoking === share.code ? 'Revoking...' : 'Revoke access'}</button>}</td>
+              </tr>)}
+            </tbody></table></div>
+          )}
         </div>
-        
+
+        <div className="history-card activity-card animate-up delay-3">
+          <div className="activity-heading"><div><h2>Download tracking</h2><p>Uploads are listed above; this feed records views, downloads, and denied attempts.</p></div><select value={activityFilter} onChange={(event) => setActivityFilter(event.target.value)}><option value="all">All attempts</option><option value="allowed">Allowed</option><option value="denied">Denied</option></select></div>
+          {activity.length === 0 ? <p className="history-empty">No access activity found.</p> : <div className="history-table-wrapper"><table className="history-table"><thead><tr><th>File</th><th>Action</th><th>Result</th><th>User</th><th>Time</th></tr></thead><tbody>{activity.map((event, index) => <tr key={`${event.code}-${event.at}-${index}`}><td><div className="file-name">{event.fileName || 'Unknown file'}</div><div className="file-size">Code {event.code}</div></td><td>{event.action === 'view' ? 'Viewed' : 'Downloaded'}</td><td><span className={`status-pill ${event.outcome === 'allowed' ? 'completed' : 'pending'}`}>{event.outcome}{event.reason ? ` · ${event.reason.replace('_', ' ')}` : ''}</span></td><td>{event.email || 'Guest'}</td><td>{formatDate(event.at)}</td></tr>)}</tbody></table></div>}
+        </div>
       </div>
     </div>
   );
-};
-
-export default History;
+}
