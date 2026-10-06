@@ -10,7 +10,7 @@ const AccessLog = require('../models/AccessLog');
 
 const router = express.Router();
 
-const REASONS = ['revoked', 'expired', 'limit_reached', 'login_required', 'email_not_allowed', 'file_missing'];
+const REASONS = ['revoked', 'expired', 'limit_reached', 'login_required', 'email_not_allowed', 'file_missing', 'view_only'];
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -71,6 +71,7 @@ async function sendLogs(res, { filter, page, limit }) {
       code: l.code,
       fileName: l.file ? l.file.originalName : null,
       outcome: l.outcome,
+      action: l.action,
       reason: l.reason,
       email: l.email, // null = visitor was not logged in
       userId: l.user,

@@ -90,6 +90,89 @@
   overflow: hidden;
 }
 
+.history-toolbar,
+.activity-heading {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.history-toolbar input,
+.history-toolbar select,
+.activity-heading select {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  font: inherit;
+}
+
+.history-toolbar input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.activity-card {
+  margin-top: 1.5rem;
+}
+
+.activity-heading {
+  margin-bottom: 0.5rem;
+}
+
+.activity-heading h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.activity-heading p {
+  color: var(--text-muted);
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+}
+
+.history-actions {
+  white-space: nowrap;
+}
+
+.history-actions button {
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  margin-left: 0.75rem;
+  font-weight: 600;
+}
+
+.history-actions button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.history-actions button.danger {
+  color: #dc2626;
+}
+
+.history-empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.history-empty.error {
+  color: #dc2626;
+}
+
+@media (max-width: 720px) {
+  .history-toolbar,
+  .activity-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
 .history-table-wrapper {
   width: 100%;
   overflow-x: auto;

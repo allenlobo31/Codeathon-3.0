@@ -110,7 +110,7 @@ router.get('/:code/view', optionalAuth, async (req, res) => {
   }
   if (!share.file) return res.status(404).json({ error: 'File not found' });
 
-  await logAccess(req, share, { outcome: 'allowed', reason: 'view' });
+  await logAccess(req, share, { outcome: 'allowed', action: 'view' });
   res.set('Content-Type', share.file.mimeType || 'application/octet-stream');
   res.set('Content-Length', share.file.size);
   res.set('Content-Disposition', 'inline');
