@@ -14,15 +14,16 @@ function App() {
   // Simple routing without a library: /s/<code> shows the recipient page
   const match = window.location.pathname.match(/^\/s\/(.+)$/)
 
-  if (window.location.pathname === '/') {
+  const path = window.location.pathname.toLowerCase()
+  if (path === '/' || path === '/home') {
     return <Home />
   }
 
-  if (window.location.pathname === '/send') {
+  if (path.startsWith('/send')) {
     return <SendFilePage />
   }
 
-  if (window.location.pathname === '/receive') {
+  if (path.startsWith('/receive')) {
     return <ReceiveFilePage />
   }
 
