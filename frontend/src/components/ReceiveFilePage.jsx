@@ -25,16 +25,61 @@ const ReceiveFilePage = () => {
       return;
     }
 
+    const previewWindow = window.open('', '_blank', 'width=900,height=700');
     setLoading(true);
     setError('');
     try {
-      setShareData(await getShareInfo(code));
+      const data = await getShareInfo(code);
+      setShareData(data);
+      if (!data.accessAllowed || data.status !== 'active') {
+        previewWindow?.close();
+        return;
+      }
+
+      if (data.deliveryMode === 'view') {
+        const blob = await viewShare(code);
+        await showPreview(blob, data.fileName, previewWindow);
+      } else {
+        const { blob } = await downloadShare(code);
+        downloadBlob(blob, data.fileName || 'shared-file');
+        await showPreview(blob, data.fileName, previewWindow);
+        if (data.remainingDownloads !== null) {
+          setShareData((current) => current && {
+            ...current,
+            remainingDownloads: Math.max(current.remainingDownloads - 1, 0),
+          });
+        }
+      }
     } catch (requestError) {
       setShareData(null);
       setError(requestError.message);
+      previewWindow?.close();
     } finally {
       setLoading(false);
     }
+  };
+
+  const downloadBlob = (blob, fileName) => {
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = fileName;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  };
+
+  const showPreview = async (blob, fileName, previewWindow) => {
+    if (!previewWindow) throw new Error('Please allow pop-ups to preview the file');
+    const isDocx = blob.type.includes('wordprocessingml') || fileName.toLowerCase().endsWith('.docx');
+    if (isDocx) {
+      const result = await mammoth.convertToHtml({ arrayBuffer: await blob.arrayBuffer() });
+      previewWindow.document.title = fileName;
+      previewWindow.document.body.innerHTML = `<main style="font:16px sans-serif;max-width:800px;margin:40px auto;line-height:1.6">${result.value}</main>`;
+      return;
+    }
+    const objectUrl = URL.createObjectURL(blob);
+    previewWindow.location.href = objectUrl;
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
   };
 
   const handleDownload = async () => {
@@ -44,12 +89,7 @@ const ReceiveFilePage = () => {
     setError('');
     try {
       const { blob } = await downloadShare(accessCode.trim());
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = shareData.fileName || 'shared-file';
-      link.click();
-      URL.revokeObjectURL(objectUrl);
+      downloadBlob(blob, shareData.fileName || 'shared-file');
       setShareData((current) => current && current.remainingDownloads !== null
         ? { ...current, remainingDownloads: Math.max(current.remainingDownloads - 1, 0) }
         : current);
