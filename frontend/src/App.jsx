@@ -3,6 +3,8 @@ import UploadForm from './components/UploadForm'
 import ShareList from './components/ShareList'
 import DownloadPage from './components/DownloadPage'
 import Home from './Home'
+import SignIn from './SignIn'
+import SignUp from './SignUp'
 function App() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [codeInput, setCodeInput] = useState('')
@@ -12,6 +14,14 @@ function App() {
 
   if (window.location.pathname === '/') {
     return <Home />
+  }
+
+  if (window.location.pathname === '/signin') {
+    return <SignIn />
+  }
+
+  if (window.location.pathname === '/signup') {
+    return <SignUp />
   }
 
   return (

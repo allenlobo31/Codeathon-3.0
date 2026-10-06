@@ -1,0 +1,209 @@
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-bg);
+  position: relative;
+  background-image: 
+    linear-gradient(to right, var(--border-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-color) 1px, transparent 1px);
+  background-size: 80px 80px;
+  background-position: center top;
+  padding: 2rem;
+}
+
+.auth-page::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 20%, var(--primary-bg) 80%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.auth-container {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1000px;
+  background: white;
+  border-radius: 32px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.04);
+  display: flex;
+  overflow: hidden;
+  min-height: 600px;
+}
+
+.auth-container.glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.8);
+}
+
+.auth-content {
+  flex: 1;
+  padding: 4rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth-title {
+  font-size: 3.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  margin-bottom: 3rem;
+  letter-spacing: -0.03em;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 400px;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1.25rem;
+  color: #777;
+  display: flex;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 1rem 1.25rem 1rem 3rem;
+  border: 1px solid var(--border-color);
+  border-radius: 40px;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+  background: transparent;
+  font-family: inherit;
+}
+
+.auth-input:focus {
+  border-color: #111;
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.05);
+}
+
+.auth-submit {
+  background: var(--button-black);
+  color: white;
+  border: none;
+  padding: 1rem;
+  border-radius: 40px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.auth-submit:hover {
+  background: #333;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.auth-footer {
+  margin-top: 2rem;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.auth-footer a {
+  color: var(--text-main);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  font-weight: 500;
+}
+
+/* Illustration Side */
+.auth-illustration {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 2rem;
+}
+
+.illustration-box {
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1;
+  background-image: 
+    linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 20px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.illustration-tag {
+  position: absolute;
+  top: -12px;
+  background: var(--accent-green);
+  border: 1px solid #111;
+  padding: 0.2rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  box-shadow: 2px 2px 0 #111;
+}
+
+/* Specific to SignUp */
+.signup-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  z-index: 1;
+}
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.signup-header .logo {
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.signup-title {
+  font-size: 3rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.signup-card {
+  max-width: 900px;
+  min-height: auto;
+  padding: 1rem;
+}
+
+.signup-card .auth-content {
+  padding: 2.5rem;
+}
