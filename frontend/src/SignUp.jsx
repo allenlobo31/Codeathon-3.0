@@ -136,13 +136,11 @@ const SignUp = () => {
               Encrypted Sharing
             </div>
             {/* Outline Key illustration SVG mockup to match design */}
-            <svg width="180" height="180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round" style={{transform: 'rotate(-45deg)'}}>
-              <circle cx="15" cy="15" r="6" strokeDasharray="1 1"></circle>
-              <path d="M2.5 2.5L9 9" strokeDasharray="1 1"></path>
-              <path d="M4 10l-2 2 2 2"></path>
-              <path d="M8 6l-2-2-2 2"></path>
-              <circle cx="15" cy="15" r="2"></circle>
-            </svg>
+            <img 
+              src="/c29837534474899d5e668cf508cb5da5.jpg" 
+              alt="Encrypted Sharing" 
+              style={{ width: '80%', height: 'auto', objectFit: 'cover', borderRadius: '12px' }} 
+            />
           </div>
         </div>
         

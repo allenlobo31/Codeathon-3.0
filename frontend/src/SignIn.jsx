@@ -93,13 +93,11 @@ const SignIn = () => {
               Security First
             </div>
             {/* Key illustration SVG mockup */}
-            <svg width="120" height="120" viewBox="0 0 24 24" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{transform: 'rotate(-45deg)'}}>
-              <circle cx="15" cy="15" r="6"></circle>
-              <path d="M2.5 2.5L9 9"></path>
-              <path d="M4 10l-2 2 2 2"></path>
-              <path d="M8 6l-2-2-2 2"></path>
-              <circle cx="15" cy="15" r="2" fill="white"></circle>
-            </svg>
+            <img 
+              src="/01692ca549ba0716b07a7b1b839fe770.jpg" 
+              alt="Security" 
+              style={{ width: '80%', height: '80%', objectFit: 'cover', borderRadius: '12px' }} 
+            />
           </div>
         </div>
       </div>
