@@ -36,7 +36,20 @@ router.get('/', requireAuth, async (req, res) => {
   if (!SORTS.includes(sort)) return res.status(400).json({ error: `sort must be one of: ${SORTS.join(', ')}` });
   if (!['asc', 'desc'].includes(order)) return res.status(400).json({ error: 'order must be asc or desc' });
 
-  const filter = { owner: req.user._id };
+  // Shares this user successfully downloaded (works for open, code-only shares too)
+  const myDownloads = await AccessLog.aggregate([
+    { $match: { user: req.user._id, outcome: 'allowed' } },
+    { $group: { _id: '$share', lastReceivedAt: { $max: '$createdAt' }, count: { $sum: 1 } } },
+  ]);
+  const receivedByShare = new Map(myDownloads.map((d) => [String(d._id), d]));
+
+  const filter = {
+    $or: [
+      { owner: req.user._id },
+      { allowedEmails: req.user.email },
+      { _id: { $in: myDownloads.map((d) => d._id) } },
+    ]
+  };
   if (req.query.from || req.query.to) {
     filter.createdAt = {};
     if (req.query.from) {
@@ -60,8 +73,14 @@ router.get('/', requireAuth, async (req, res) => {
   ]);
   const deniedByShare = new Map(denied.map((d) => [String(d._id), d.count]));
 
-  let list = shares.map((share) => ({
-    code: share.code,
+  let list = shares.map((share) => {
+    const isSent = String(share.owner) === String(req.user._id);
+    const received = receivedByShare.get(String(share._id));
+    return {
+      receivedAt: received ? received.lastReceivedAt : null,
+      timesReceived: received ? received.count : 0,
+      id: share._id,
+      code: share.code,
     link: buildShareLink(share.code),
     fileId: share.file ? share.file._id : null,
     fileName: share.file ? share.file.originalName : 'Deleted file',
@@ -75,7 +94,9 @@ router.get('/', requireAuth, async (req, res) => {
     downloadCount: share.downloadCount,
     deniedAttempts: deniedByShare.get(String(share._id)) || 0,
     status: getStatus(share), // always live
-  }));
+    type: isSent ? 'sent' : 'received'
+    };
+  });
 
   if (q) {
     list = list.filter(
