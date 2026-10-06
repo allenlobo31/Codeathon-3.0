@@ -1,8 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { signup } from './api';
 import './Home.css';
 import './Auth.css';
 
 const SignUp = () => {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    if (password !== confirmPassword) {
+      return setError('Passwords do not match');
+    }
+    setLoading(true);
+    try {
+      await signup(name, email, password, confirmPassword);
+      window.location.href = '/'; // Redirect on success
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="auth-page">
       <div className="signup-wrapper animate-up">
@@ -19,7 +44,9 @@ const SignUp = () => {
         
         <div className="auth-container glass signup-card">
           <div className="auth-content">
-            <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
+            <form className="auth-form" onSubmit={handleSubmit}>
+              {error && <div style={{color: 'red', marginBottom: '1rem', fontSize: '0.9rem', textAlign: 'center'}}>{error}</div>}
+              
               <div className="input-group">
                 <span className="input-icon">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -27,7 +54,14 @@ const SignUp = () => {
                     <circle cx="12" cy="7" r="4"></circle>
                   </svg>
                 </span>
-                <input type="text" placeholder="Name" className="auth-input" required />
+                <input 
+                  type="text" 
+                  placeholder="Name" 
+                  className="auth-input" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required 
+                />
               </div>
 
               <div className="input-group">
@@ -37,7 +71,14 @@ const SignUp = () => {
                     <path d="M2 4l10 8 10-8"></path>
                   </svg>
                 </span>
-                <input type="email" placeholder="Email Address" className="auth-input" required />
+                <input 
+                  type="email" 
+                  placeholder="Email Address" 
+                  className="auth-input" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required 
+                />
               </div>
 
               <div className="input-group">
@@ -47,7 +88,14 @@ const SignUp = () => {
                     <path d="M7 11V7a5 5 0 0110 0v4"></path>
                   </svg>
                 </span>
-                <input type="password" placeholder="Password" className="auth-input" required />
+                <input 
+                  type="password" 
+                  placeholder="Password" 
+                  className="auth-input" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required 
+                />
               </div>
 
               <div className="input-group">
@@ -57,15 +105,24 @@ const SignUp = () => {
                     <path d="M7 11V7a5 5 0 0110 0v4"></path>
                   </svg>
                 </span>
-                <input type="password" placeholder="Confirm Password" className="auth-input" required />
+                <input 
+                  type="password" 
+                  placeholder="Confirm Password" 
+                  className="auth-input" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required 
+                />
               </div>
 
-              <button type="submit" className="auth-submit" style={{marginTop: '1.5rem'}}>
-                Create Account
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="19" x2="19" y2="5"></line>
-                  <polyline points="9 5 19 5 19 15"></polyline>
-                </svg>
+              <button type="submit" className="auth-submit" style={{marginTop: '1.5rem'}} disabled={loading}>
+                {loading ? 'Creating Account...' : 'Create Account'}
+                {!loading && (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="19" x2="19" y2="5"></line>
+                    <polyline points="9 5 19 5 19 15"></polyline>
+                  </svg>
+                )}
               </button>
             </form>
           </div>
