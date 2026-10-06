@@ -5,14 +5,13 @@ import {
 } from 'lucide-react';
 
 const SendFilePage = () => {
-  const [file, setFile] = useState({ name: 'Project_Report.pdf', size: '2.4 MB' });
-  const [recipients, setRecipients] = useState([
-    { name: 'Rahul', email: 'rahul@gmail.com' },
-    { name: 'Priya', email: 'priya@gmail.com' }
-  ]);
+  const [file, setFile] = useState(null);
+  const [recipients, setRecipients] = useState([]);
   const [emailInput, setEmailInput] = useState('');
   
-  const [expiry, setExpiry] = useState('24 hours');
+  const [expiryHours, setExpiryHours] = useState('24');
+  const [expiryMinutes, setExpiryMinutes] = useState('0');
+  const [noExpiry, setNoExpiry] = useState(false);
   const [downloadLimit, setDownloadLimit] = useState(3);
   const [deliveryMode, setDeliveryMode] = useState('view');
   const [advancedSecurityOpen, setAdvancedSecurityOpen] = useState(false);
@@ -216,19 +215,42 @@ const SendFilePage = () => {
                   <h3 className="font-semibold text-sm text-gray-900 mb-1">Expiry</h3>
                   <p className="text-xs text-gray-500 mb-3">Choose when this share stops working.</p>
                   
-                  <div className="relative">
-                    <select 
-                      className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium text-gray-700 focus:outline-none focus:border-gray-400 cursor-pointer"
-                      value={expiry}
-                      onChange={(e) => setExpiry(e.target.value)}
-                    >
-                      <option value="1 hour">1 hour</option>
-                      <option value="6 hours">6 hours</option>
-                      <option value="24 hours">24 hours</option>
-                      <option value="3 days">3 days</option>
-                      <option value="7 days">7 days</option>
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2 items-center">
+                      <div className="flex-1">
+                        <input 
+                          type="number" 
+                          min="0"
+                          placeholder="Hrs"
+                          disabled={noExpiry}
+                          className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:border-gray-400 disabled:opacity-50 disabled:bg-gray-50"
+                          value={expiryHours}
+                          onChange={(e) => setExpiryHours(e.target.value)}
+                        />
+                      </div>
+                      <span className="text-gray-400 font-bold">:</span>
+                      <div className="flex-1">
+                        <input 
+                          type="number" 
+                          min="0"
+                          max="59"
+                          placeholder="Mins"
+                          disabled={noExpiry}
+                          className="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:border-gray-400 disabled:opacity-50 disabled:bg-gray-50"
+                          value={expiryMinutes}
+                          onChange={(e) => setExpiryMinutes(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer mt-1">
+                      <input 
+                        type="checkbox" 
+                        className="w-4 h-4 text-[#84c311] border-gray-300 rounded focus:ring-[#84c311]" 
+                        checked={noExpiry}
+                        onChange={(e) => setNoExpiry(e.target.checked)}
+                      />
+                      <span className="text-xs text-gray-600 font-medium">No expiry (None)</span>
+                    </label>
                   </div>
                 </div>
 
@@ -384,7 +406,9 @@ const SendFilePage = () => {
                   <span className="text-gray-900 font-semibold text-sm">Expires</span>
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900 text-sm">{expiry}</p>
+                  <p className="font-semibold text-gray-900 text-sm">
+                    {noExpiry ? 'None' : `${expiryHours || 0}h ${expiryMinutes || 0}m`}
+                  </p>
                   <p className="text-xs text-gray-500">Oct 7, 2026 • 12:37 PM</p>
                 </div>
               </div>
@@ -417,41 +441,6 @@ const SendFilePage = () => {
             </div>
 
             <div className="w-full h-px bg-gray-100 mb-6"></div>
-
-            {/* Dynamic Features List */}
-            <div className="mb-8 px-2">
-              <h4 className="font-bold text-sm text-gray-900 mb-4">Security Features</h4>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-[#84c311] mt-0.5 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-gray-900">Encryption <span className="font-normal text-gray-500">(end-to-end)</span></span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-[#84c311] mt-0.5 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-gray-900">Access control <span className="font-normal text-gray-500">(selected users only)</span></span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-[#84c311] mt-0.5 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-gray-900">Expiry protection</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-[#84c311] mt-0.5 flex-shrink-0" />
-                  <span className="text-sm font-semibold text-gray-900">Download limit</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Circle className="w-4 h-4 text-gray-300 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-gray-500">Password protection</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Circle className="w-4 h-4 text-gray-300 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-gray-500">Device binding</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <Circle className="w-4 h-4 text-gray-300 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-gray-500">Watermark</span>
-                </li>
-              </ul>
-            </div>
 
             {/* Actions */}
             <div>

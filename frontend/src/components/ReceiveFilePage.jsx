@@ -65,8 +65,8 @@ const ReceiveFilePage = () => {
                     <FileText className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-900 text-[15px]">Project_Report.pdf</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">2.4 MB • PDF Document</p>
+                    <h3 className="font-bold text-gray-400 text-[15px] italic">No file selected</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">-- MB</p>
                   </div>
                 </div>
                 <div className="bg-[#E5F876] bg-opacity-70 text-black px-3 py-1.5 rounded-full text-xs font-semibold flex items-center shadow-sm">
@@ -234,38 +234,7 @@ const ReceiveFilePage = () => {
               </div>
             </div>
 
-            <div className="w-full h-px bg-gray-100 mb-6"></div>
 
-            {/* Security Features */}
-            <div>
-              <h4 className="font-bold text-[15px] text-gray-900 mb-4">Security Features</h4>
-              <ul className="space-y-3">
-                <li className="flex items-center gap-3">
-                  <Lock className="w-4 h-4 text-gray-900 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-600">End-to-end encryption</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <User className="w-4 h-4 text-gray-900 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-600">Access restricted to selected users</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Clock className="w-4 h-4 text-gray-900 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-600">File expires automatically</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Download className="w-4 h-4 text-gray-900 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-600">Download limit enforced</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Eye className="w-4 h-4 text-gray-900 flex-shrink-0" />
-                  <span className="text-sm font-medium text-gray-600">Secure in-browser viewer</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <Shield className="w-4 h-4 text-gray-900 flex-shrink-0 fill-gray-900 text-white" />
-                  <span className="text-sm font-medium text-gray-600">Dynamic watermark protection</span>
-                </li>
-              </ul>
-            </div>
 
           </div>
         </div>
