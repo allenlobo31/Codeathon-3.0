@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 
+const signup = require('./features/signup');
+const login = require('./features/login');
+const me = require('./features/me');
 const upload = require('./features/upload');
 const createShare = require('./features/createShare');
 const listShares = require('./features/listShares');
@@ -10,10 +13,19 @@ const shareInfo = require('./features/shareInfo');
 const downloadShare = require('./features/downloadShare');
 const revokeShare = require('./features/revokeShare');
 
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET is missing in .env');
+  process.exit(1);
+}
+
 const app = express();
 
 app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
 app.use(express.json());
+
+app.use('/api/auth', signup);
+app.use('/api/auth', login);
+app.use('/api/auth', me);
 
 app.use('/api/files', upload);
 app.use('/api/shares', createShare);
@@ -22,6 +34,7 @@ app.use('/api/shares', shareInfo);
 app.use('/api/shares', downloadShare);
 app.use('/api/shares', revokeShare);
 
+// Error handler (e.g. file too large, DB errors)
 app.use((err, req, res, next) => {
   console.error(err.message);
   res.status(err.code === 'LIMIT_FILE_SIZE' ? 413 : 500).json({ error: err.message });
