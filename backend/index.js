@@ -7,11 +7,15 @@ const signup = require('./features/signup');
 const login = require('./features/login');
 const me = require('./features/me');
 const upload = require('./features/upload');
+const myFiles = require('./features/myFiles');
+const downloadFile = require('./features/downloadFile');
 const createShare = require('./features/createShare');
 const listShares = require('./features/listShares');
 const shareInfo = require('./features/shareInfo');
 const downloadShare = require('./features/downloadShare');
 const revokeShare = require('./features/revokeShare');
+const shareQr = require('./features/shareQr');
+const accessLogs = require('./features/accessLogs');
 
 if (!process.env.JWT_SECRET) {
   console.error('JWT_SECRET is missing in .env');
@@ -28,11 +32,17 @@ app.use('/api/auth', login);
 app.use('/api/auth', me);
 
 app.use('/api/files', upload);
+app.use('/api/files', myFiles);
+app.use('/api/files', downloadFile);
 app.use('/api/shares', createShare);
 app.use('/api/shares', listShares);
+app.use('/api/shares', shareQr);
 app.use('/api/shares', shareInfo);
 app.use('/api/shares', downloadShare);
 app.use('/api/shares', revokeShare);
+
+// Download tracking: GET /api/shares/:code/logs and GET /api/activity
+app.use('/api', accessLogs);
 
 // Error handler (e.g. file too large, DB errors)
 app.use((err, req, res, next) => {
