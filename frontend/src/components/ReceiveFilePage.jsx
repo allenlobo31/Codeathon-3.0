@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Download, FileText, Key, Lock, ShieldCheck } from 'lucide-react';
-import { downloadShare, getShareInfo } from '../api';
+import mammoth from 'mammoth';
+import { downloadShare, getShareInfo, viewShare } from '../api';
 
 const ReceiveFilePage = () => {
   const [accessCode, setAccessCode] = useState('');
@@ -8,6 +9,8 @@ const ReceiveFilePage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const [previewing, setPreviewing] = useState(false);
 
   const onBack = () => {
     window.location.href = '/';
@@ -22,16 +25,61 @@ const ReceiveFilePage = () => {
       return;
     }
 
+    const previewWindow = window.open('', '_blank', 'width=900,height=700');
     setLoading(true);
     setError('');
     try {
-      setShareData(await getShareInfo(code));
+      const data = await getShareInfo(code);
+      setShareData(data);
+      if (!data.accessAllowed || data.status !== 'active') {
+        previewWindow?.close();
+        return;
+      }
+
+      if (data.deliveryMode === 'view') {
+        const blob = await viewShare(code);
+        await showPreview(blob, data.fileName, previewWindow);
+      } else {
+        const { blob } = await downloadShare(code);
+        downloadBlob(blob, data.fileName || 'shared-file');
+        await showPreview(blob, data.fileName, previewWindow);
+        if (data.remainingDownloads !== null) {
+          setShareData((current) => current && {
+            ...current,
+            remainingDownloads: Math.max(current.remainingDownloads - 1, 0),
+          });
+        }
+      }
     } catch (requestError) {
       setShareData(null);
       setError(requestError.message);
+      previewWindow?.close();
     } finally {
       setLoading(false);
     }
+  };
+
+  const downloadBlob = (blob, fileName) => {
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = fileName;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  };
+
+  const showPreview = async (blob, fileName, previewWindow) => {
+    if (!previewWindow) throw new Error('Please allow pop-ups to preview the file');
+    const isDocx = blob.type.includes('wordprocessingml') || fileName.toLowerCase().endsWith('.docx');
+    if (isDocx) {
+      const result = await mammoth.convertToHtml({ arrayBuffer: await blob.arrayBuffer() });
+      previewWindow.document.title = fileName;
+      previewWindow.document.body.innerHTML = `<main style="font:16px sans-serif;max-width:800px;margin:40px auto;line-height:1.6">${result.value}</main>`;
+      return;
+    }
+    const objectUrl = URL.createObjectURL(blob);
+    previewWindow.location.href = objectUrl;
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
   };
 
   const handleDownload = async () => {
@@ -41,12 +89,7 @@ const ReceiveFilePage = () => {
     setError('');
     try {
       const { blob } = await downloadShare(accessCode.trim());
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = shareData.fileName || 'shared-file';
-      link.click();
-      URL.revokeObjectURL(objectUrl);
+      downloadBlob(blob, shareData.fileName || 'shared-file');
       setShareData((current) => current && current.remainingDownloads !== null
         ? { ...current, remainingDownloads: Math.max(current.remainingDownloads - 1, 0) }
         : current);
@@ -54,6 +97,27 @@ const ReceiveFilePage = () => {
       setError(requestError.message);
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handlePreview = async () => {
+    if (!shareData?.accessAllowed || shareData.status !== 'active') return;
+    setPreviewing(true);
+    setError('');
+    try {
+      const blob = await viewShare(accessCode.trim());
+      const mimeType = blob.type || 'application/octet-stream';
+      if (mimeType.includes('wordprocessingml') || shareData.fileName.toLowerCase().endsWith('.docx')) {
+        const arrayBuffer = await blob.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        setPreview({ type: 'docx', html: result.value });
+      } else {
+        setPreview({ type: 'url', url: URL.createObjectURL(blob), mimeType });
+      }
+    } catch (requestError) {
+      setError(requestError.message);
+    } finally {
+      setPreviewing(false);
     }
   };
 
@@ -92,7 +156,7 @@ const ReceiveFilePage = () => {
                 <p className="text-xs text-gray-500 mt-2">Expires: {new Date(shareData.expiresAt).toLocaleString()}</p>
               </div>
               <div className="flex items-center gap-3 mt-5 text-sm text-gray-600"><ShieldCheck className="w-5 h-5 text-gray-700" /><span>{shareData.deliveryMode === 'view' ? 'View only' : shareData.deliveryMode === 'download_once' ? `${shareData.remainingDownloads} download remaining` : 'Unlimited downloads'}</span></div>
-              {shareData.status !== 'active' ? <p className="text-red-600 text-sm mt-5">This share is no longer available.</p> : !shareData.accessAllowed ? <p className="text-red-600 text-sm mt-5">Sign in with an authorized email to download this file.</p> : shareData.deliveryMode === 'view' ? <p className="text-gray-600 text-sm mt-5">This file was shared for viewing only. Downloading is disabled.</p> : <button onClick={handleDownload} disabled={downloading || !hasRemainingDownloads} className="w-full mt-5 bg-[#E5F876] hover:bg-[#d4ec55] text-black py-3.5 rounded-full font-bold text-sm flex items-center justify-center disabled:opacity-50"><Download className="w-4 h-4 mr-2" />{downloading ? 'Downloading...' : hasRemainingDownloads ? 'Download File' : 'Download Limit Reached'}</button>}
+              {shareData.status !== 'active' ? <p className="text-red-600 text-sm mt-5">This share is no longer available.</p> : !shareData.accessAllowed ? <p className="text-red-600 text-sm mt-5">Sign in with an authorized email to view this file.</p> : shareData.deliveryMode === 'view' ? <><button onClick={handlePreview} disabled={previewing} className="w-full mt-5 bg-[#E5F876] hover:bg-[#d4ec55] text-black py-3.5 rounded-full font-bold text-sm disabled:opacity-50">{previewing ? 'Opening preview...' : 'View File'}</button>{preview?.type === 'url' && <iframe title="File preview" src={preview.url} className="w-full h-[500px] mt-5 rounded-xl border border-gray-200" />}{preview?.type === 'docx' && <div className="prose max-w-none mt-5 p-5 rounded-xl border border-gray-200 bg-white" dangerouslySetInnerHTML={{ __html: preview.html }} />}</> : <button onClick={handleDownload} disabled={downloading || !hasRemainingDownloads} className="w-full mt-5 bg-[#E5F876] hover:bg-[#d4ec55] text-black py-3.5 rounded-full font-bold text-sm flex items-center justify-center disabled:opacity-50"><Download className="w-4 h-4 mr-2" />{downloading ? 'Downloading...' : hasRemainingDownloads ? 'Download File' : 'Download Limit Reached'}</button>}
             </div>
           )}
 
